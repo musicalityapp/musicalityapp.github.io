@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>🎵 Interval Dictation Terminal</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css" />
+  <style>
+    body {
+      background: #121212;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      color: #ffffff;
+    }
+    #terminal-container {
+      width: 500px;
+      height: 250px;
+      border: 1px solid #444;
+      border-radius: 6px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.6);
+    }
+  </style>
+</head>
+<body>
+  <div id="terminal-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.min.js"></script>
+  <script>
+    const term = new Terminal({
+      theme: {
+        background: '#1e1e1e',
+        foreground: '#c5c8c6',
+        cursor: '#ffffff'
+      }
+    });
+
+    term.open(document.getElementById('terminal-container'));
+
+    const intervalMap = {
+      0.5: "minor second", 1.0: "major second", 1.5: "minor third", 2.0: "major third",
+      2.5: "perfect fourth", 3.0: "Tritone", 3.5: "perfect fifth", 4.0: "minor sixth",
+      4.5: "major sixth", 5.0: "minor seventh", 5.5: "major seventh", 6.0: "perfect octave"
+    };
+
+    const arr = [".", ".", "", ".", "", ".", "", ".", ".", "", ".", "", "."];
+
+    function speak(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "en-US";
+      speechSynthesis.speak(utterance);
+    }
+
+    function getIntervalUp(mylp, myrp, intervalMap, arr, delay, callback) {
+      mylp = myrp;
+      if (mylp === 12) return callback(mylp, myrp);
+
+      let newrp;
+      do {
+        newrp = Math.floor(Math.random() * (12 - (mylp + 1) + 1)) + (mylp + 1);
+      } while (arr[newrp] !== ".");
+
+      const steps = Math.abs((mylp - newrp) / 2);
+      const interval = intervalMap[steps] || "";
+
+      const text = `Ascending ${interval}`;
+      speak(text);
+
+      setTimeout(() => callback(mylp, newrp), delay * 1000);
+    }
+
+    function getIntervalDown(mylp, myrp, intervalMap, arr, delay, callback) {
+      if (myrp === 0) return callback(mylp, myrp);
+
+      mylp = myrp;
+      let newrp;
+
+      do {
+        newrp = Math.floor(Math.random() * myrp);
+      } while (arr[newrp] !== ".");
+
+      const steps = Math.abs((mylp - newrp) / 2);
+      const interval = intervalMap[steps] || "";
+
+      const text = `Descending ${interval}`;
+      speak(text);
+
+      setTimeout(() => callback(mylp, newrp), delay * 1000);
+    }
+
+    function askInput() {
+      term.write("Enter seconds between intervals: ");
+      let buffer = "";
+      term.onKey(e => {
+        const char = e.key;
+        if (char === "\r") {
+          const delay = parseInt(buffer);
+          if (isNaN(delay)) {
+            term.writeln("\nenter a number.");
+            askInput();
+          } else {
+            term.writeln("\nStarting...");
+            startApp(delay);
+          }
+        } else {
+          buffer += char;
+          term.write(char);
+        }
+      });
+    }
+
+    function startApp(delay) {
+      let lp, rp;
+      do {
+        lp = Math.floor(Math.random() * 12);
+        rp = Math.floor(Math.random() * (12 - lp)) + lp + 1;
+      } while (!(arr[lp] === "." && arr[rp] === "."));
+
+      const steps = Math.abs((lp - rp) / 2);
+      const interval = intervalMap[steps] || "";
+      const text = `Ascending ${interval}`;
+      
+      speak(text);
+
+      setTimeout(() => runLoop(lp, rp, delay), delay * 1000);
+    }
+
+    function runLoop(lp, rp, delay) {
+      const rand = Math.floor(Math.random() * 2);
+      if (rand === 0) {
+        getIntervalUp(lp, rp, intervalMap, arr, delay, (newlp, newrp) => {
+          runLoop(newlp, newrp, delay);
+        });
+      } else {
+        getIntervalDown(lp, rp, intervalMap, arr, delay, (newlp, newrp) => {
+          runLoop(newlp, newrp, delay);
+        });
+      }
+    }
+
+    askInput();
+  </script>
+</body>
+</html>

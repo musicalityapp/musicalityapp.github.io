@@ -1,0 +1,93 @@
+#piano {
+    /*box model*/
+    width: 827px;   /* 14 white keys: 14*60 - 13*1 = 827 */
+    height: 500px;
+    /*color*/
+    /*background-color: orange;*/
+    
+    background-color: transparent;
+    /*position in the screen*/
+    position: absolute; /* here positioned relative to body tag */
+    left: 50%; /* left border of your element will be at the center */
+    top: 50%; /* the top border of your elemtn will be at the center */
+    transform: translate(-50%, -50%); /*used to offset the element by -50% of its own width*/
+    /*extra*/
+    display: flex;  /*get rid of gaps in between*/
+}
+.white {
+    /*box model*/
+    width: 60px;
+    height: 240px;
+    margin-left: -1px;  /*creates margin space, overlap over border*/
+    /*color*/
+    border: 1px solid black;
+    background-color: white;
+}
+.black {
+    /*box model*/
+    width: 40px;
+    height: 160px;
+    margin-left: 38.25px;  /*creates margin space*/
+    /*color*/
+    background-color: black;
+    /*position in the screen*/
+    position: absolute; /* here positioned realitve to div piano  */
+    z-index: 1;  /*stack on top of other elements*/
+    /*top: 0;  make sure the top aligns with div piano */
+}
+/*while button is pressed then it will become grey*/
+.pressed {
+    background-color: grey;
+}
+
+/*makes all buttons span red (the text that appears when pressed)*/
+button span {
+    color: red;
+    font-weight: bold;
+}
+
+/* ===== Octave 1 black keys (unchanged math from the original) ===== */
+#C\#1 {
+    left: 0px;
+}
+#D\#1 {
+    left: 59.25px;
+}
+#F\#1 {
+    left: 177.25px;  /*59px mult by 3 get whole num +0.25*/
+}
+#G\#1 {
+    left: 236.25px;  /*59px mult by 4 get whole num +0.25*/
+}
+#A\#1 {
+    left: 295.25px;  /*59px mult by 5 get whole num +0.25*/
+}
+
+/* ===== Octave 2 black keys =====
+   One octave = 7 white keys wide.
+   step per white key = 59px (60px width - 1px overlap margin)
+   octave offset = 7 * 59 = 413px, added to every octave-1 value */
+#C\#2 {
+    left: 413px;        /* 0 + 413 */
+}
+#D\#2 {
+    left: 472.25px;     /* 59.25 + 413 */
+}
+#F\#2 {
+    left: 590.25px;     /* 177.25 + 413 */
+}
+#G\#2 {
+    left: 649.25px;     /* 236.25 + 413 */
+}
+#A\#2 {
+    left: 708.25px;     /* 295.25 + 413 */
+}
+
+/*debug alignment, i messed up somewehre . dont fix it*/
+#line {
+    border-left: 1px solid black;
+    height: 0px; /*300 or any other value */
+    margin-left: -1px;  /*creates margin space*/
+    color: red;
+    z-index: 2;  /*stack on top of other elements*/
+}

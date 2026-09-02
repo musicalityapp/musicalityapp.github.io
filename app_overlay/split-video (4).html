@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Split Screen — Video / Webcam</title>
+<style>
+  :root {
+    --bg: #0b0d10;
+    --line: #d97706;
+    --text: #e8e6e1;
+    --muted: #8a8f98;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    overflow: hidden;
+  }
+
+  .stage {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pane {
+    position: relative;
+    width: 100%;
+    height: 50%;
+    overflow: hidden;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pane video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  /* mirror the webcam feed so it behaves like a mirror */
+  #camFeed {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    transform: scaleX(-1);
+  }
+
+  .divider {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--line);
+    z-index: 5;
+    transform: translateY(-1px);
+    box-shadow: 0 0 8px rgba(217,119,6,0.6);
+  }
+
+  .label {
+    position: absolute;
+    left: 10px;
+    padding: 3px 9px;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: rgba(0,0,0,0.55);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 3px;
+    color: var(--muted);
+    z-index: 6;
+    backdrop-filter: blur(2px);
+  }
+
+  .pane:first-child .label { top: 10px; }
+  .pane:last-child .label { bottom: 10px; }
+
+  .controls {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .controls input[type="file"] {
+    display: none;
+  }
+
+  .btn {
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 6px 10px;
+    background: rgba(0,0,0,0.55);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: var(--text);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .btn:hover {
+    border-color: var(--line);
+    background: rgba(217,119,6,0.15);
+  }
+  .btn:focus-visible {
+    outline: 2px solid var(--line);
+    outline-offset: 1px;
+  }
+
+  .status {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px;
+    background: rgba(11,13,16,0.92);
+    z-index: 20;
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .status button {
+    margin-top: 14px;
+    font-size: 13px;
+    padding: 8px 16px;
+    background: var(--line);
+    border: none;
+    color: #1a1300;
+    font-weight: 600;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .hidden { display: none !important; }
+
+  .videoBar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 8;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: linear-gradient(to top, rgba(0,0,0,0.75), rgba(0,0,0,0));
+  }
+
+  .vc-btn {
+    flex: 0 0 auto;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 5px 9px;
+    background: rgba(0,0,0,0.55);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: var(--text);
+    border-radius: 3px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .vc-btn:hover {
+    border-color: var(--line);
+    background: rgba(217,119,6,0.2);
+  }
+
+  .vc-progress {
+    flex: 1 1 auto;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.25);
+    outline: none;
+    cursor: pointer;
+  }
+  .vc-progress::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.25);
+  }
+  .vc-progress::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: var(--line);
+    border: 2px solid #1a1300;
+    margin-top: -4.5px;
+    cursor: pointer;
+    box-shadow: 0 0 4px rgba(0,0,0,0.6);
+  }
+  .vc-progress::-moz-range-track {
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.25);
+  }
+  .vc-progress::-moz-range-thumb {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: var(--line);
+    border: 2px solid #1a1300;
+    cursor: pointer;
+    box-shadow: 0 0 4px rgba(0,0,0,0.6);
+  }
+  .vc-volume {
+    flex: 0 0 70px;
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="pane" id="topPane">
+    <span class="label">Upper — sample video</span>
+    <video id="topVideo" autoplay loop muted playsinline></video>
+    <div class="videoBar">
+      <button class="vc-btn" id="stopBtn">Pause</button>
+      <input type="range" class="vc-progress" id="progressBar" min="0" max="100" step="0.1" value="0">
+      <button class="vc-btn" id="speedBtn">1x</button>
+      <input type="range" class="vc-progress vc-volume" id="volumeBar" min="0" max="100" step="1" value="100">
+    </div>
+  </div>
+
+  <div class="pane" id="bottomPane">
+    <span class="label">Lower — live webcam</span>
+    <video id="camFeed" autoplay muted playsinline></video>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="controls">
+    <button class="btn" id="pickVideoBtn">Use my own video</button>
+    <input type="file" id="videoInput" accept="video/*">
+    <button class="btn" id="muteTopBtn">Unmute top</button>
+    <button class="btn" id="mirrorBtn">Unmirror webcam</button>
+  </div>
+</div>
+
+<div class="status" id="camStatus">
+  Requesting camera access…
+  <br>Allow camera permission in the prompt from your browser.
+</div>
+
+<script>
+  const topVideo   = document.getElementById('topVideo');
+  const camFeed    = document.getElementById('camFeed');
+  const camStatus  = document.getElementById('camStatus');
+  const pickBtn    = document.getElementById('pickVideoBtn');
+  const videoInput = document.getElementById('videoInput');
+  const muteTopBtn = document.getElementById('muteTopBtn');
+
+  // --- Upper video: a sample clip by default, swappable for a local file ---
+  const SAMPLE_VIDEO_URL = 'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+  topVideo.src = SAMPLE_VIDEO_URL;
+
+  pickBtn.addEventListener('click', () => videoInput.click());
+  videoInput.addEventListener('change', () => {
+    const file = videoInput.files[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    topVideo.src = url;
+    topVideo.muted = false;
+    muteTopBtn.textContent = 'Mute top';
+    topVideo.playbackRate = 1;
+    speedIndex = 0;
+    speedBtn.textContent = '1x';
+    stopBtn.textContent = 'Pause';
+    topVideo.play();
+  });
+
+  muteTopBtn.addEventListener('click', () => {
+    topVideo.muted = !topVideo.muted;
+    muteTopBtn.textContent = topVideo.muted ? 'Unmute top' : 'Mute top';
+  });
+
+  // --- Progress bar / thumb for the top video ---
+  const progressBar = document.getElementById('progressBar');
+  let isScrubbing = false;
+
+  topVideo.addEventListener('timeupdate', () => {
+    if (isScrubbing || !topVideo.duration) return;
+    progressBar.value = (topVideo.currentTime / topVideo.duration) * 100;
+  });
+  topVideo.addEventListener('loadedmetadata', () => {
+    progressBar.value = 0;
+  });
+
+  progressBar.addEventListener('input', () => {
+    isScrubbing = true;
+    if (topVideo.duration) {
+      topVideo.currentTime = (progressBar.value / 100) * topVideo.duration;
+    }
+  });
+  progressBar.addEventListener('change', () => { isScrubbing = false; });
+
+  // --- Pause button: pauses in place; click again to resume ---
+  const stopBtn = document.getElementById('stopBtn');
+  stopBtn.addEventListener('click', () => {
+    if (topVideo.paused) {
+      topVideo.play();
+      stopBtn.textContent = 'Pause';
+    } else {
+      topVideo.pause();
+      stopBtn.textContent = 'Resume';
+    }
+  });
+
+  // --- Speed button: cycles through common playback rates ---
+  const speedBtn = document.getElementById('speedBtn');
+  const speeds = [1, 1.25, 1.5, 2, 0.5, 0.75];
+  let speedIndex = 0;
+  speedBtn.addEventListener('click', () => {
+    speedIndex = (speedIndex + 1) % speeds.length;
+    topVideo.playbackRate = speeds[speedIndex];
+    speedBtn.textContent = speeds[speedIndex] + 'x';
+  });
+
+  // --- Volume slider for the top video ---
+  const volumeBar = document.getElementById('volumeBar');
+  volumeBar.addEventListener('input', () => {
+    topVideo.volume = volumeBar.value / 100;
+    if (topVideo.volume > 0 && topVideo.muted) {
+      topVideo.muted = false;
+      muteTopBtn.textContent = 'Mute top';
+    }
+  });
+
+  const mirrorBtn = document.getElementById('mirrorBtn');
+  let isMirrored = true; // starts mirrored, matching #camFeed's default CSS
+  mirrorBtn.addEventListener('click', () => {
+    isMirrored = !isMirrored;
+    camFeed.style.transform = isMirrored ? 'scaleX(-1)' : 'none';
+    mirrorBtn.textContent = isMirrored ? 'Unmirror webcam' : 'Mirror webcam';
+  });
+
+  // --- Lower video: live webcam via getUserMedia ---
+  async function startCamera() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user' },
+        audio: false
+      });
+      camFeed.srcObject = stream;
+      camStatus.classList.add('hidden');
+    } catch (err) {
+      camStatus.innerHTML =
+        'Could not access the webcam.<br>' +
+        '<span style="color:#e8e6e1">' + (err.message || err.name) + '</span>' +
+        '<br><button id="retryBtn">Try again</button>';
+      document.getElementById('retryBtn').addEventListener('click', startCamera);
+    }
+  }
+
+  startCamera();
+</script>
+
+</body>
+</html>

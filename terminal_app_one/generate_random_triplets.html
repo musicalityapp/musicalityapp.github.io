@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Fretboard Interval Triplet Generator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #ffffff;
+      --bg-secondary: #f5f5f4;
+      --border: rgba(0,0,0,0.12);
+      --border-secondary: rgba(0,0,0,0.2);
+      --text: #1a1a18;
+      --text-secondary: #6b6b67;
+      --text-tertiary: #a0a09c;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --font-mono: 'Courier New', Courier, monospace;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1e1e1c;
+        --bg-secondary: #2a2a28;
+        --border: rgba(255,255,255,0.1);
+        --border-secondary: rgba(255,255,255,0.2);
+        --text: #f0ede8;
+        --text-secondary: #a0a09c;
+        --text-tertiary: #6b6b67;
+      }
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-mono);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 3rem 1.5rem;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 560px;
+    }
+
+    .header {
+      margin-bottom: 2rem;
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .header p {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 1.25rem;
+    }
+
+    .input-row input {
+      flex: 1;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      padding: 8px 12px;
+      background: var(--bg-secondary);
+      border: 0.5px solid var(--border-secondary);
+      border-radius: var(--radius-md);
+      color: var(--text);
+      outline: none;
+    }
+
+    .input-row input:focus {
+      border-color: var(--text-secondary);
+      box-shadow: 0 0 0 2px rgba(0,0,0,0.06);
+    }
+
+    .input-row input::placeholder {
+      color: var(--text-tertiary);
+    }
+
+    .btn {
+      padding: 8px 16px;
+      font-size: 13px;
+      font-family: var(--font-mono);
+      background: var(--bg);
+      border: 0.5px solid var(--border-secondary);
+      border-radius: var(--radius-md);
+      color: var(--text);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.1s, transform 0.1s;
+    }
+
+    .btn:hover { background: var(--bg-secondary); }
+    .btn:active { transform: scale(0.98); }
+
+    .btn-primary {
+      background: var(--text);
+      color: var(--bg);
+      border-color: transparent;
+    }
+
+    .btn-primary:hover { opacity: 0.85; background: var(--text); }
+
+    .count-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .count-row label {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .count-row select {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      padding: 6px 10px;
+      background: var(--bg-secondary);
+      border: 0.5px solid var(--border-secondary);
+      border-radius: var(--radius-md);
+      color: var(--text);
+      cursor: pointer;
+      outline: none;
+    }
+
+    .output-area {
+      background: var(--bg-secondary);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.25rem;
+      min-height: 220px;
+    }
+
+    .output-line {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 6px 0;
+      border-bottom: 0.5px solid var(--border);
+    }
+
+    .output-line:last-child { border-bottom: none; }
+
+    .line-num {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      min-width: 18px;
+      text-align: right;
+    }
+
+    .triplet {
+      display: flex;
+      gap: 8px;
+    }
+
+    .num-badge {
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 500;
+      background: var(--bg);
+      border: 0.5px solid var(--border-secondary);
+      color: var(--text);
+    }
+
+    .placeholder {
+      font-size: 13px;
+      color: var(--text-tertiary);
+      padding: 3rem 0;
+      text-align: center;
+    }
+
+    .status {
+      font-size: 12px;
+      color: var(--text-tertiary);
+      margin-top: 8px;
+      min-height: 18px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app">
+    <div class="header">
+      <h1>Interval triplet generator</h1>
+      <p>Generate random triplets from strings 1–8 for ear training</p>
+    </div>
+
+    <div class="section-label">Forbidden pairs</div>
+    <div class="input-row">
+      <input type="text" id="forbidden" placeholder="e.g. 1 2, 3 4, 5 6" />
+      <button class="btn btn-primary" onclick="generate()">Generate</button>
+      <button class="btn" onclick="clearAll()">Clear</button>
+    </div>
+
+    <div class="count-row">
+      <label>Count</label>
+      <select id="count">
+        <option value="4">4 triplets</option>
+        <option value="8" selected>8 triplets</option>
+        <option value="12">12 triplets</option>
+        <option value="16">16 triplets</option>
+      </select>
+    </div>
+
+    <div class="section-label">Output</div>
+    <div class="output-area" id="output">
+      <div class="placeholder">Press generate to get triplets</div>
+    </div>
+    <div class="status" id="status"></div>
+  </div>
+
+  <script>
+    function parseForbiddenPairs(input) {
+      const s = new Set();
+      input.split(",").forEach(pair => {
+        const nums = pair.trim().split(/\s+/);
+        if (nums.length === 2 && nums[0] && nums[1]) {
+          s.add(nums[0] + " " + nums[1]);
+          s.add(nums[1] + " " + nums[0]);
+        }
+      });
+      return s;
+    }
+
+    function generateUniqueTriplet() {
+      const set = new Set();
+      while (set.size < 3) set.add(Math.floor(Math.random() * 8) + 1);
+      return Array.from(set);
+    }
+
+    function containsForbidden(t, fp) {
+      return fp.has(t[0]+" "+t[1]) || fp.has(t[0]+" "+t[2]) || fp.has(t[1]+" "+t[2]);
+    }
+
+    function generate() {
+      const input = document.getElementById("forbidden").value.trim();
+      const count = parseInt(document.getElementById("count").value);
+      const fp = parseForbiddenPairs(input);
+      const out = document.getElementById("output");
+      const status = document.getElementById("status");
+      const triplets = [];
+      let attempts = 0;
+
+      for (let i = 0; i < count; i++) {
+        let t;
+        do {
+          t = generateUniqueTriplet();
+          attempts++;
+          if (attempts > 10000) {
+            status.textContent = "Warning: too many forbidden pairs — some triplets may repeat.";
+            break;
+          }
+        } while (containsForbidden(t, fp));
+        triplets.push(t);
+      }
+
+      out.innerHTML = triplets.map((t, i) => `
+        <div class="output-line">
+          <span class="line-num">${i + 1}</span>
+          <div class="triplet">
+            ${t.map(n => `<div class="num-badge">${n}</div>`).join("")}
+          </div>
+        </div>
+      `).join("");
+
+      if (attempts <= 10000) {
+        status.textContent = `Generated ${count} triplets` +
+          (fp.size > 0 ? ` with ${fp.size / 2} forbidden pair(s)` : "");
+      }
+    }
+
+    function clearAll() {
+      document.getElementById("forbidden").value = "";
+      document.getElementById("output").innerHTML = '<div class="placeholder">Press generate to get triplets</div>';
+      document.getElementById("status").textContent = "";
+    }
+
+    document.getElementById("forbidden").addEventListener("keydown", e => {
+      if (e.key === "Enter") generate();
+    });
+  </script>
+
+</body>
+</html>

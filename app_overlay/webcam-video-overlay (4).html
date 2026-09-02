@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Webcam + Video Overlay</title>
+<style>
+  body {
+    background: #111;
+    color: #eee;
+    font-family: sans-serif;
+    text-align: center;
+    padding: 20px;
+  }
+  #controls {
+    margin-bottom: 16px;
+  }
+  input[type="range"] {
+    width: 200px;
+  }
+  canvas {
+    border: 2px solid #444;
+    background: #000;
+    max-width: 90vw;
+    display: block;
+    margin: 0 auto;
+  }
+  label {
+    margin-right: 8px;
+  }
+  #status {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #aaa;
+  }
+
+  /* --- Progress bar / play button --- */
+  #progressWrap {
+    max-width: 90vw;
+    margin: 14px auto 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  #playPauseBtn {
+    flex: 0 0 auto;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: #4da3ff;
+    color: #111;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+  #playPauseBtn:disabled {
+    background: #555;
+    cursor: not-allowed;
+  }
+  #progressBar {
+    position: relative;
+    flex: 1;
+    height: 8px;
+    background: #333;
+    border-radius: 4px;
+    cursor: pointer;
+    user-select: none;
+  }
+  #progressFill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 0%;
+    background: #4da3ff;
+    border-radius: 4px;
+    pointer-events: none;
+  }
+  #progressThumb {
+    position: absolute;
+    top: 50%;
+    left: 0%;
+    width: 14px;
+    height: 14px;
+    background: #fff;
+    border: 2px solid #4da3ff;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 4px rgba(0,0,0,0.6);
+    cursor: grab;
+  }
+  #progressThumb:active {
+    cursor: grabbing;
+  }
+  #timeLabel {
+    font-size: 13px;
+    color: #ccc;
+    min-width: 100px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+</style>
+</head>
+<body>
+
+<h2>Webcam + Video Overlay</h2>
+
+<div id="controls">
+  <label for="videoFile">Video file:</label>
+  <input type="file" id="videoFile" accept="video/*">
+
+  <label for="alpha" style="margin-left: 20px;">Camera opacity:</label>
+  <input type="range" id="alpha" min="0" max="1" step="0.01" value="0.5">
+  <span id="alphaVal">0.50</span>
+
+  <label for="speed" style="margin-left: 20px;">Video speed:</label>
+  <input type="range" id="speed" min="0.1" max="4" step="0.1" value="1">
+  <span id="speedVal">1.00x</span>
+
+  <label for="volume" style="margin-left: 20px;">Volume:</label>
+  <input type="range" id="volume" min="0" max="1" step="0.01" value="1">
+  <span id="volumeVal">1.00</span>
+</div>
+
+<canvas id="canvas"></canvas>
+
+<div id="progressWrap">
+  <button id="playPauseBtn" disabled aria-label="Play">&#9654;</button>
+  <div id="progressBar">
+    <div id="progressFill"></div>
+    <div id="progressThumb"></div>
+  </div>
+  <div id="timeLabel">0:00 / 0:00</div>
+</div>
+
+<div id="status">Select a video file and allow camera access to begin.</div>
+
+<!-- Hidden source elements -->
+<video id="camVideo" autoplay muted playsinline style="display:none;"></video>
+<video id="fileVideo" loop playsinline style="display:none;"></video>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const camVideo = document.getElementById('camVideo');
+const fileVideo = document.getElementById('fileVideo');
+const videoFileInput = document.getElementById('videoFile');
+const alphaSlider = document.getElementById('alpha');
+const alphaVal = document.getElementById('alphaVal');
+const speedSlider = document.getElementById('speed');
+const speedVal = document.getElementById('speedVal');
+const volumeSlider = document.getElementById('volume');
+const volumeVal = document.getElementById('volumeVal');
+const statusEl = document.getElementById('status');
+
+const progressBar = document.getElementById('progressBar');
+const progressFill = document.getElementById('progressFill');
+const progressThumb = document.getElementById('progressThumb');
+const timeLabel = document.getElementById('timeLabel');
+const playPauseBtn = document.getElementById('playPauseBtn');
+
+let alpha = parseFloat(alphaSlider.value);
+let camReady = false;
+let fileReady = false;
+let rafId = null;
+let isScrubbing = false;
+let wasPlayingBeforeScrub = false;
+
+alphaSlider.addEventListener('input', () => {
+  alpha = parseFloat(alphaSlider.value);
+  alphaVal.textContent = alpha.toFixed(2);
+});
+
+speedSlider.addEventListener('input', () => {
+  const rate = parseFloat(speedSlider.value);
+  fileVideo.playbackRate = rate;
+  speedVal.textContent = rate.toFixed(2) + 'x';
+});
+
+volumeSlider.addEventListener('input', () => {
+  const vol = parseFloat(volumeSlider.value);
+  fileVideo.volume = vol;
+  volumeVal.textContent = vol.toFixed(2);
+});
+
+// Load the chosen video file into the hidden <video> element
+videoFileInput.addEventListener('change', () => {
+  const file = videoFileInput.files[0];
+  if (!file) return;
+
+  const url = URL.createObjectURL(file);
+  fileVideo.src = url;
+  fileReady = false;
+
+  fileVideo.addEventListener('loadedmetadata', () => {
+    fileReady = true;
+    fileVideo.playbackRate = parseFloat(speedSlider.value);
+    fileVideo.muted = false;
+    fileVideo.volume = parseFloat(volumeSlider.value);
+    playPauseBtn.disabled = false;
+    fileVideo.play().catch(err => {
+      // Some browsers still block unmuted autoplay even after a user
+      // gesture on the file input — fall back to muted playback and
+      // let the user unmute via the volume slider/click.
+      console.error('Video play error:', err);
+      statusEl.textContent = 'Autoplay with sound was blocked — click the video controls or adjust volume to enable audio.';
+    });
+    trySizeCanvas();
+    tryStartLoop();
+    updateProgressUI();
+    updatePlayPauseUI();
+  }, { once: true });
+});
+
+// Start the webcam
+async function startCamera() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    camVideo.srcObject = stream;
+    await camVideo.play();
+    camReady = true;
+    trySizeCanvas();
+    tryStartLoop();
+  } catch (err) {
+    statusEl.textContent = 'Camera access failed: ' + err.message;
+    console.error(err);
+  }
+}
+
+// Size the canvas to match the camera's resolution (mirrors the Python
+// script's approach of matching dimensions, but here we size the canvas
+// to the camera and resize the video frame to fit each draw call)
+function trySizeCanvas() {
+  if (camReady && camVideo.videoWidth) {
+    canvas.width = camVideo.videoWidth;
+    canvas.height = camVideo.videoHeight;
+  }
+}
+
+function tryStartLoop() {
+  if (camReady && fileReady && rafId === null) {
+    statusEl.textContent = 'Overlay running.';
+    drawLoop();
+  }
+}
+
+// Main render loop: draw video frame, then draw camera frame on top
+// with reduced opacity (equivalent to cv2.addWeighted blending)
+function drawLoop() {
+  if (canvas.width && canvas.height) {
+    // Draw the file video first, stretched to canvas size
+    ctx.globalAlpha = 1 - alpha;
+    ctx.drawImage(fileVideo, 0, 0, canvas.width, canvas.height);
+
+    // Draw the camera frame on top with the chosen opacity
+    ctx.globalAlpha = alpha;
+    ctx.drawImage(camVideo, 0, 0, canvas.width, canvas.height);
+
+    ctx.globalAlpha = 1; // reset
+  }
+
+  if (!isScrubbing) updateProgressUI();
+
+  rafId = requestAnimationFrame(drawLoop);
+}
+
+// If the file video ends and looping somehow doesn't kick in, restart it
+fileVideo.addEventListener('ended', () => {
+  fileVideo.currentTime = 0;
+  fileVideo.play().catch(() => {});
+});
+
+/* ---------------- Play / Pause ---------------- */
+
+function updatePlayPauseUI() {
+  if (fileVideo.paused) {
+    playPauseBtn.innerHTML = '&#9654;'; // play triangle
+    playPauseBtn.setAttribute('aria-label', 'Play');
+  } else {
+    playPauseBtn.innerHTML = '&#10074;&#10074;'; // pause bars
+    playPauseBtn.setAttribute('aria-label', 'Pause');
+  }
+}
+
+playPauseBtn.addEventListener('click', () => {
+  if (!fileReady) return;
+  if (fileVideo.paused) {
+    fileVideo.play().catch(() => {});
+  } else {
+    fileVideo.pause();
+  }
+});
+
+fileVideo.addEventListener('play', updatePlayPauseUI);
+fileVideo.addEventListener('pause', updatePlayPauseUI);
+
+/* ---------------- Progress bar / scrub thumb ---------------- */
+
+function formatTime(sec) {
+  if (!isFinite(sec) || sec < 0) sec = 0;
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return m + ':' + String(s).padStart(2, '0');
+}
+
+function updateProgressUI() {
+  const duration = fileVideo.duration;
+  if (!duration || !isFinite(duration)) {
+    progressFill.style.width = '0%';
+    progressThumb.style.left = '0%';
+    timeLabel.textContent = formatTime(0) + ' / ' + formatTime(0);
+    return;
+  }
+  const pct = Math.min(1, Math.max(0, fileVideo.currentTime / duration)) * 100;
+  progressFill.style.width = pct + '%';
+  progressThumb.style.left = pct + '%';
+  timeLabel.textContent = formatTime(fileVideo.currentTime) + ' / ' + formatTime(duration);
+}
+
+// Given a clientX position, compute the corresponding time and seek to it
+function seekToClientX(clientX) {
+  if (!fileVideo.duration || !isFinite(fileVideo.duration)) return;
+  const rect = progressBar.getBoundingClientRect();
+  let pct = (clientX - rect.left) / rect.width;
+  pct = Math.min(1, Math.max(0, pct));
+  fileVideo.currentTime = pct * fileVideo.duration;
+  progressFill.style.width = (pct * 100) + '%';
+  progressThumb.style.left = (pct * 100) + '%';
+  timeLabel.textContent = formatTime(fileVideo.currentTime) + ' / ' + formatTime(fileVideo.duration);
+}
+
+function startScrub(clientX) {
+  if (!fileReady) return;
+  isScrubbing = true;
+  wasPlayingBeforeScrub = !fileVideo.paused;
+  fileVideo.pause();
+  seekToClientX(clientX);
+}
+
+function moveScrub(clientX) {
+  if (!isScrubbing) return;
+  seekToClientX(clientX);
+}
+
+function endScrub() {
+  if (!isScrubbing) return;
+  isScrubbing = false;
+  if (wasPlayingBeforeScrub) {
+    fileVideo.play().catch(() => {});
+  }
+}
+
+// Mouse events
+progressBar.addEventListener('mousedown', (e) => {
+  startScrub(e.clientX);
+  e.preventDefault();
+});
+window.addEventListener('mousemove', (e) => {
+  if (isScrubbing) moveScrub(e.clientX);
+});
+window.addEventListener('mouseup', () => endScrub());
+
+// Touch events (mobile)
+progressBar.addEventListener('touchstart', (e) => {
+  startScrub(e.touches[0].clientX);
+}, { passive: true });
+window.addEventListener('touchmove', (e) => {
+  if (isScrubbing) moveScrub(e.touches[0].clientX);
+}, { passive: true });
+window.addEventListener('touchend', () => endScrub());
+
+// Keep the label in sync even before playback starts / while paused
+fileVideo.addEventListener('timeupdate', () => {
+  if (!isScrubbing) updateProgressUI();
+});
+fileVideo.addEventListener('loadedmetadata', updateProgressUI);
+
+startCamera();
+</script>
+
+</body>
+</html>

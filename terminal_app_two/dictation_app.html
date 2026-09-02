@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Melodic Dictation</title>
+  <style>
+    body {
+      background: #e8e8e2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    #app {
+      font-family: monospace;
+      background: #f5f5f0;
+      color: #2c2c2a;
+      border-radius: 8px;
+      padding: 1.25rem;
+      width: 650px;
+      min-height: 360px;
+      max-height: 480px;
+      font-size: 13px;
+      line-height: 1.6;
+      overflow-y: auto;
+      border: 1px solid #d3d1c7;
+    }
+
+    #output { white-space: pre-wrap; margin-bottom: 0.75rem; }
+
+    .input-row { display: flex; align-items: center; gap: 6px; }
+    .prompt    { color: #3b6d11; }
+
+    #cmd {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #2c2c2a;
+      font-family: monospace;
+      font-size: 13px;
+      flex: 1;
+      caret-color: #2c2c2a;
+    }
+
+    .ok    { color: #0f6e56; }
+    .err   { color: #993c1d; }
+    .hint  { color: #185fa5; }
+    .label { color: #854f0b; }
+    .dim   { color: #888780; }
+  </style>
+</head>
+<body>
+
+<div id="app">
+  <div id="output"></div>
+  <div class="input-row">
+    <span class="prompt">❯</span>
+    <input id="cmd" type="text" autocomplete="off" spellcheck="false" autofocus />
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+<script>
+const out = document.getElementById('output');
+const cmd = document.getElementById('cmd');
+
+function println(text = '', cls = '') {
+  const line = document.createElement('div');
+  if (cls) line.className = cls;
+  line.textContent = text;
+  out.appendChild(line);
+  out.scrollTop = out.scrollHeight;
+}
+
+const INTERVALS = {
+  m2: 1, M2: 2, m3: 3, M3: 4, P4: 5, TT: 6,
+  P5: 7, m6: 8, M6: 9, m7: 10, M7: 11, Octave: 12
+};
+
+const BASE_NOTES = {
+  110:   ['A', 'La'],
+  123.5: ['B', 'Si'],
+  130.8: ['C', 'Do'],
+  146.8: ['D', 'Re'],
+  164.8: ['E', 'Mi'],
+  174.6: ['F', 'Fa'],
+  196:   ['G', 'Sol']
+};
+
+let synth = null;
+function getSynth() {
+  if (!synth) {
+    synth = new Tone.Synth({
+      oscillator: { type: 'sine' },
+      envelope: { attack: 0.01, decay: 0.1, sustain: 0.8, release: 0.3 },
+      volume: -18
+    }).toDestination();
+  }
+  return synth;
+}
+
+async function playSequence(freqs, pauseSec) {
+  await Tone.start();
+  const s = getSynth();
+  for (let i = 0; i < freqs.length; i++) {
+    s.triggerAttackRelease(freqs[i], '4n');
+    await new Promise(r => setTimeout(r, (pauseSec + 0.7) * 1000));
+  }
+}
+
+let step = 'mode';
+let notesCount = 2;
+let pauseSeconds = 1;
+let freqs = [];
+let correctIntervals = [];
+
+function startDictation() {
+  const keys = Object.keys(BASE_NOTES);
+  const baseFreq = parseFloat(keys[Math.floor(Math.random() * keys.length)]);
+  const [eng, esp] = BASE_NOTES[baseFreq];
+
+  freqs = [baseFreq];
+  correctIntervals = [];
+
+  for (let i = 0; i < notesCount - 1; i++) {
+    const entries = Object.entries(INTERVALS);
+    const [name, semitones] = entries[Math.floor(Math.random() * entries.length)];
+    let next = freqs[freqs.length - 1] * Math.pow(2, semitones / 12);
+    if (next > 600) next /= 2;
+    freqs.push(next);
+    correctIntervals.push(name);
+  }
+
+  println('');
+  println(`♩ Nota inicial: ${eng} (${esp})`, 'label');
+  playSequence(freqs, pauseSeconds);
+}
+
+function handleInput(input) {
+  println('❯ ' + input, 'dim');
+
+  if (step === 'mode') {
+    if      (input === '1') notesCount = 2;
+    else if (input === '2') notesCount = 3;
+    else if (input === '3') notesCount = 4;
+    else { println('Opcion invalida. Escribe 1, 2 o 3.', 'err'); return; }
+    step = 'pause';
+    println('');
+    println('Tiempo entre notas en segundos:', 'hint');
+    return;
+  }
+
+  if (step === 'pause') {
+    const val = parseFloat(input);
+    if (isNaN(val) || val <= 0) { println('Ingresa un numero valido mayor a 0.', 'err'); return; }
+    pauseSeconds = val;
+    println('');
+    println('Escribe los intervalos separados por espacios.', 'hint');
+    println('Ejemplo: M2 m3 P5', 'hint');
+    println('r = repetir  |  q = salir  |  i = ver intervalos', 'hint');
+    println('');
+    startDictation();
+    step = 'answer';
+    return;
+  }
+
+  if (step === 'answer') {
+    if (input === 'q') { println(''); println('Hasta luego.', 'ok'); step = 'done'; return; }
+    if (input === 'r') { println('Reproduciendo...', 'hint'); playSequence(freqs, pauseSeconds); return; }
+    if (input === 'i') {
+      println('Intervalos disponibles: ' + Object.keys(INTERVALS).join(' '), 'hint');
+      return;
+    }
+    const user = input.trim().split(/\s+/);
+    if (JSON.stringify(user) === JSON.stringify(correctIntervals)) {
+      println('Correcto!', 'ok');
+    } else {
+      println('Incorrecto.', 'err');
+      println('Respuesta: ' + correctIntervals.join(' '), 'hint');
+    }
+    startDictation();
+  }
+}
+
+cmd.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const val = cmd.value.trim();
+    cmd.value = '';
+    if (val !== '') handleInput(val);
+  }
+});
+
+document.getElementById('app').addEventListener('click', () => cmd.focus());
+
+println('Dictado Melodico (input is case sensitive, internet required)', 'ok');
+println('');
+println('Elige modo:', 'hint');
+println('  1  —  2 notas');
+println('  2  —  3 notas');
+println('  3  —  4 notas');
+println('');
+</script>
+
+</body>
+</html>

@@ -1,0 +1,104 @@
+
+
+
+
+Here's how it works: put a filter for the intervals you dont want to be tested on then answer the questions.
+ once you can do this in 1 second or less for any position move to the next part.
+--------------------------------------------------------------------
+Remember every day to play all the intervals at least once. For example, 
+play a major second, then a major third, then a perfect fourth,
+ and so on(all starting from the same note).By the time you finish the major
+ intervals, you will move on to the minor intervals. this is where music theory
+ comes in handy, you should try to start the minor scale from a convinient position,
+ in this case two steps and a half below or the sixth interval.
+
+-------------------------------------------------------------------------
+
+
+Sing all major and perfect intervals starting from C.
+Go to the sixth degree by singing a minor third below C.
+Sing the minor intervals from the minor third to the minor seventh.
+
+
+
+-------------------------------------
+
+dictation app
+this app is made to test you on identifying several intervals in a row.
+ you have to choose how many notes you want in a row for example if you 
+want to play two notes in a row you enter 1 inside the terminal and press enter.
+
+tell me random intervals inside the scale
+this app tells you what intervals to play without getting out of the 
+scale so that it is easier to sing. you must start playing at the n fret at n string
+for it to work correctly.
+
+test piano intervals app
+this app test you on intervals in the piano. remember not to care about the 
+note names.all you need to know is the interval.
+
+show intervals in piano
+you can click any piano key and it will show you which intervals you can play from there.
+
+
+
+------------------------------------------
+
+sing all major and perfect intervals starting from any note
+when you are finishing playing them. go to the sixth degree
+(the sixth interval) by singing a minor third below the root
+ note(the first note you played) or
+by singing a major sixth above the root note. once there 
+play he minor intervals from the minor third (m3) to the
+ minor seventh (m7). Finally, move up a major second and
+ sing a minor second (m2).
+
+
+
+grammar corrected: 
+Sing all major and perfect intervals starting from any note.
+
+When you finish playing them, go to the sixth degree (the sixth interval) by singing a major sixth above the root note(the first note you played) or
+by singing a minor third below the root note .
+
+Once there, play the minor intervals from the minor third (m3) to the minor seventh (m7).
+
+Finally, move up a major second and sing a minor second (m2).
+
+
+-----------------------------------------------------------------
+
+
+as you can see the piano has several different shapes for the same intervals. is up to you 
+to make nemonics or try learning them by repetition.
+
+
+------------------------------------------------------------------
+
+The distance between two notes in an interval is measured in half steps and/or whole steps.
+intervals vary on shapes accross the keyboard but the name of steps remain consistent
+for this reason we dont rellly on the shape of the interval in the keyboard(unlike in guitar and bass) but we relly
+on the distance measured by steps.
+
+The distance is always the same (4 half steps), but the visual pattern of white and black keys changes.
+
+the distance formed by intervals is measured in half steps and or whole steps
+
+... 
+these are the distances (in steps) for each interval. 
+
+
+-----------------------------------------------------------------------
+
+
+The distance between two notes in an interval is measured in half steps and/or whole steps.
+
+Intervals vary in shape across the keyboard, but the number of the steps remain consistent. For this reason, we don’t rely on the visual shape of an interval on the keyboard (unlike on guitar and bass). Instead, we rely on the distance between the notes, measured in steps.
+
+The distance is always the same (four half steps), but the visual pattern of white and black keys changes.
+
+
+In this stage, you'll focus on not just hearing intervals but also locating them. Now that you can identify intervals by ear, the next step is to learn the number of steps needed to create a specific interval on the keyboard.
+
+
+

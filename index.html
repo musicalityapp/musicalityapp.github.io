@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Music Fundamentals</title>
+  <link rel="stylesheet" type="text/css" href="styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+</head>
+
+<body>
+
+  <div class="progress-bar" id="progressBar"></div>
+
+  <!-- ─── HERO ─── -->
+  <section class="hero">
+    <p class="hero-label">Music Fundamentals</p>
+    <h1>Sing what you play</h1>
+    <p>This page is meant to be practiced with two sets of 5 minutes (one in the morning and one in the night).</p>
+    <hr class="divider">
+
+    <!-- VIDEO -->
+    <div class="video-block">
+      <video controls poster="">
+        <source src="intro-video.mp4" type="video/mp4">
+      </video>
+      <noscript>
+        <div class="video-placeholder">
+          <div class="play-icon"></div>
+          <span>Introduction Video</span>
+        </div>
+      </noscript>
+    </div>
+
+    <!-- INSTRUMENT SELECTOR -->
+    <div class="instrument-selector">
+      <button class="instrument-btn" data-instrument="guitar" onclick="selectInstrument(this)">
+        <span>Guitar</span>
+        <span class="btn-meta">6-string, fretted</span>
+      </button>
+      <button class="instrument-btn" data-instrument="piano" onclick="selectInstrument(this)">
+        <span>Piano</span>
+        <span class="btn-meta">88-key keyboard</span>
+      </button>
+      <button class="instrument-btn" data-instrument="bass" onclick="selectInstrument(this)">
+        <span>Bass</span>
+        <span class="btn-meta">4-string, low-end</span>
+      </button>
+    </div>
+
+    <!-- Instrument selection prompt -->
+    <p id="instrument-prompt" style="font-size:13px;color:#888;margin-top:1rem;text-align:center;">
+      ↑ Select your instrument above to see instrument-specific content in Chapter 04.
+    </p>
+  </section>
+
+  <!-- ─── TABLE OF CONTENTS ─── -->
+  <section class="toc-section">
+    <p class="section-label">Contents</p>
+    <ul class="toc-list">
+      <li class="toc-item">
+        <a href="#chapter-1">
+          <span class="toc-num">01</span>
+          <span class="toc-title">Recognize Sound of Intervals</span>
+          <span class="toc-sub">6 months</span>
+        </a>
+      </li>
+      <li class="toc-item">
+        <a href="#chapter-2">
+          <span class="toc-num">02</span>
+          <span class="toc-title">Recognize Interval on Fretboard</span>
+          <span class="toc-sub">2 weeks</span>
+        </a>
+      </li>
+      <li class="toc-item">
+        <a href="#chapter-3">
+          <span class="toc-num">03</span>
+          <span class="toc-title">Recognizing Interval Sound and Position</span>
+          <span class="toc-sub">1 year</span>
+        </a>
+      </li>
+      <li class="toc-item" id="toc-ch4">
+        <a href="#chapter-4">
+          <span class="toc-num">04</span>
+          <span class="toc-title">Learning the First Two Strings of the Guitar</span>
+          <span class="toc-sub">n months</span>
+        </a>
+      </li>
+    </ul>
+  </section>
+
+  <!-- ─── CONTENT ─── -->
+  <div class="content">
+
+    <!-- CHAPTER 1 -->
+    <article class="chapter" id="chapter-1">
+      <div class="chapter-header">
+        <span class="chapter-number">Chapter 01</span>
+        <h2>Recognize Sound of Intervals (6 months)</h2>
+      </div>
+
+      <div class="step">
+        <h3>Types of intervals</h3>
+        <p>The 13 musical intervals are perfect unison, minor second, major second, minor third, major third, perfect
+          fourth, tritone, perfect fifth, minor sixth, major sixth, minor seventh, major seventh, and perfect octave. It
+          is important to recognize both the interval being played and whether it is ascending or descending.</p>
+        <p>This is a preview of how the first three ascending intervals sound. Do not memorize the intervals yet.</p>
+      </div>
+
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:1rem;">
+        <button class="interval-btn" onclick="playInterval('C4','Db4','Minor 2nd')">
+          <span>Minor 2nd</span>
+          <span class="btn-meta">C → D♭ · 1 semitone</span>
+        </button>
+        <button class="interval-btn" onclick="playInterval('C4','D4','Major 2nd')">
+          <span>Major 2nd</span>
+          <span class="btn-meta">C → D · 2 semitones</span>
+        </button>
+        <button class="interval-btn" onclick="playInterval('C4','Eb4','Minor 3rd')">
+          <span>Minor 3rd</span>
+          <span class="btn-meta">C → E♭ · 3 semitones</span>
+        </button>
+      </div>
+      <p id="interval-status" style="font-size:12px;color:#888;margin-top:10px;min-height:1em;"></p>
+
+      <div class="step">
+        <p>This is a preview of how the first three descending intervals sound</p>
+      </div>
+
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:1rem;">
+        <button class="interval-btn" onclick="playInterval('Db4','C4','Descending Minor 2nd','interval-desc-status')">
+          <span>↓ Minor 2nd</span>
+          <span class="btn-meta">D♭ → C · 1 semitone</span>
+        </button>
+        <button class="interval-btn" onclick="playInterval('D4','C4','Descending Major 2nd','interval-desc-status')">
+          <span>↓ Major 2nd</span>
+          <span class="btn-meta">D → C · 2 semitones</span>
+        </button>
+        <button class="interval-btn" onclick="playInterval('Eb4','C4','Descending Minor 3rd','interval-desc-status')">
+          <span>↓ Minor 3rd</span>
+          <span class="btn-meta">E♭ → C · 3 semitones</span>
+        </button>
+      </div>
+      <p id="interval-desc-status" style="font-size:12px;color:#888;margin-top:10px;min-height:1em;"></p>
+
+      <!-- Guitar -->
+      <div class="step instrument-img" data-instruments="guitar">
+        <p>Intervals can be visualized vertically or horizontally across the fretboard. This is an example of how they can be seen horizontally.</p>
+        <div class="img-block">
+          <img src="./media/horizontally_and_vertically_guitar.PNG" alt="Guitar – horizontal and vertical intervals on fretboard" class="posture-img">
+          <p class="img-caption">Horizontal on the left and vertical on the right</p>
+        </div>
+      </div>
+      <!-- Piano -->
+      <div class="step instrument-img" data-instruments="piano,none">
+        <p>Intervals can be visualized vertically or horizontally in the guitar and the bass.But in the piano theres is only one way to look at them (horizontally)</p>
+      </div>
+      <!-- Bass -->
+      <div class="step instrument-img" data-instruments="bass">
+        <p>Intervals can be visualized vertically or horizontally across the bass neck. This is an example of how they can be seen horizontally.</p>
+        <div class="img-block">
+          <img src="./media/horizontally_and_vertically_bass.PNG" alt="Bass – horizontal and vertical intervals on neck" class="posture-img">
+          <p class="img-caption">Horizontal on the left and vertical on the right</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <p>Intervals repeat across the fretboard starting at the octave. For example, the minor ninth and major ninth
+          have the same recognizable sound as the minor second and major second, respectively. Therefore, it is
+          preferable to name intervals from unison to octave. On this webpage, you should not refer to them as ninths,
+          tenths, or elevenths.</p>
+
+        <p>Major second vs Major ninth</p>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:0.5rem;">
+          <button class="interval-btn" onclick="playInterval('C4','D4','Major 2nd','interval-octave-status')">
+            <span>Major 2nd</span>
+            <span class="btn-meta">C4 → D4 · 2 semitones</span>
+          </button>
+          <button class="interval-btn" onclick="playInterval('C4','D5','Major 9th (same sound)','interval-octave-status')">
+            <span>Major 9th</span>
+            <span class="btn-meta">C4 → D5 · 14 semitones</span>
+          </button>
+        </div>
+        <p id="interval-octave-status" style="font-size:12px;color:#888;margin-top:10px;min-height:1em;"></p>
+
+        <p>major third vs major tenth</p>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:0.5rem;">
+          <button class="interval-btn" onclick="playInterval('C4','E4','Major 3rd','interval-tenth-status')">
+            <span>Major 3rd</span>
+            <span class="btn-meta">C4 → E4 · 4 semitones</span>
+          </button>
+          <button class="interval-btn" onclick="playInterval('C4','E5','Major 10th (same sound)','interval-tenth-status')">
+            <span>Major 10th</span>
+            <span class="btn-meta">C4 → E5 · 16 semitones</span>
+          </button>
+        </div>
+        <p id="interval-tenth-status" style="font-size:12px;color:#888;margin-top:10px;min-height:1em;"></p>
+      </div>
+
+      <div class="step">
+        <h3>Use a mnemonic table to memorize them</h3>
+        <p>I memorized intervals by listening to just the song fragment with the interval using the <a href="https://clideo.com/es/cut-audio" target="_blank">clideo app</a>. It
+          took me two weeks per interval with just 5 minutes a day.
+          While learning, test yourself with the intervals you know on the <a href="https://tonedear.com/ear-training/intervals" target="_blank">Toned Ear website</a>. When you consistently
+          score 90% accuracy, move to the next chapter.
+        </p>
+      </div>
+
+      <table class="def-table">
+        <thead>
+          <tr>
+            <th>Interval</th>
+            <th>Ascending</th>
+            <th>Descending</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Minor 2nd</td><td>Jaws Theme</td><td>Joy to the World</td></tr>
+          <tr><td>Major 2nd</td><td>Happy Birthday</td><td>Three Blind Mice</td></tr>
+          <tr><td>Minor 3rd</td><td>Brahms – Lullaby</td><td>Barney – I Love You</td></tr>
+          <tr><td>Major 3rd</td><td>Keyboard Cat!</td><td>Summertime – Mica Paris</td></tr>
+          <tr><td>Perfect 4th</td><td>O Christmas Tree</td><td>I've Been Working on the Railroad</td></tr>
+          <tr><td>Tritone</td><td>The Beatles – And I Love Her</td><td>Pearl Jam – Even Flow</td></tr>
+          <tr><td>Perfect 5th</td><td>Twinkle Twinkle Little Star</td><td>Flintstones Opening</td></tr>
+          <tr><td>Minor 6th</td><td>Love Story Theme – Francis Lai</td><td>Love Story Theme – Francis Lai</td></tr>
+          <tr><td>Major 6th</td><td>Frank Sinatra – My Way</td><td>Barrett Sisters – Nobody Knows the Trouble</td></tr>
+          <tr><td>Minor 7th</td><td>Celine Dion – Somewhere</td><td>The Rolling Stones – Lady Jane</td></tr>
+          <tr><td>Major 7th</td><td>a-ha – Take On Me</td><td>Jo Stafford – I Love You</td></tr>
+          <tr><td>Perfect 8th</td><td>Somewhere Over the Rainbow – The Wizard of Oz</td><td>There's No Business Like Show Business – Irving Berlin</td></tr>
+        </tbody>
+      </table>
+    </article>
+
+    <!-- CHAPTER 2 -->
+    <article class="chapter" id="chapter-2">
+      <div class="chapter-header">
+        <span class="chapter-number">Chapter 02</span>
+        <h2 id="ch2-title">Recognize Interval on Fretboard (2 weeks)</h2>
+      </div>
+
+      <!-- No instrument selected -->
+      <div id="ch2-none" class="instrument-content visible">
+        <div class="callout" style="text-align:center;">
+          <p class="callout-label">Select your instrument</p>
+          <p>Choose Guitar, Piano, or Bass at the top of the page to see the instrument-specific diagrams for this chapter.</p>
+        </div>
+      </div>
+
+      <!-- Guitar -->
+      <div id="ch2-guitar" class="instrument-content">
+        <div class="step">
+
+
+          <h3>Knowing all intervals on the fretboard</h3>
+          <p>In this stage, you'll focus on not just hearing intervals but also locating them. Now that you can identify intervals by ear, the next step is to learn their positions on the guitar fretboard. You'll first focus on the last four strings (G, D, A, E), then move on to the rest. These are the shapes used on the fretboard.</p>
+          <div class="img-block">
+            <img src="./media/major_and_perfect.PNG" alt="Guitar – major and perfect interval shapes" class="posture-img">
+            <p class="img-caption">Major &amp; perfect interval shapes — low four strings (Guitar)</p>
+          </div>
+          <div class="img-block">
+            <img src="./media/minor_intervals.PNG" alt="Guitar – minor interval shapes" class="posture-img">
+            <p class="img-caption">Minor interval shapes — low four strings (Guitar)</p>
+          </div>
+           <p>To practice, you can use this <a href="./terminal_app_one/generate_random_triplets.html"> terminal app</a>. Here's how it works: start with your index finger on any fret, then place another finger in the position indicated by the numbers to form the interval. I made this because it takes me effort to come up with random positions so let the computer do it for me. once you can do this in 1 second or less for any position move to the next part.</p>
+        </div>
+      </div>
+
+      <!-- Piano -->
+      <div id="ch2-piano" class="instrument-content">
+        <div class="step">
+          <h3>Knowing all intervals on the keyboard</h3>
+	  <p>In this stage, you'll focus not only on hearing intervals but also on locating them. Now that you can identify intervals by ear, the next step is to learn the number of steps needed to create a specific interval on the keyboard.</p>
+          <p>Intervals vary in shape across the keyboard, but the number of steps remains consistent. For this reason, we don’t rely on the visual shape of an interval on the keyboard (unlike on guitar and bass). Instead, we rely on the distance between the notes, measured in steps.</p>
+	  <p>You can use this <a href="./terminal_app_piano/show_intervals_in_piano.html"> app</a> as a reference.</p>
+          <div class="img-block">
+            <img src="./media/piano_steps1.PNG" alt="Piano – major and perfect interval key shapes" class="posture-img">
+            <p class="img-caption">Mnemonics are shown on the keyboard.(Piano)</p>
+          </div>
+          <div class="img-block">
+            <img src="./media/piano_steps2.PNG" alt="Piano – more intervals" class="posture-img">
+            <p class="img-caption">Mnemonics are shown on the keyboard.(Piano)</p>
+          </div>
+          <p>To practice, you can use this <a href="./terminal_app_piano/test_intervals/test_piano_intervals_app.html"> app</a>. Here's how it works: Filter out the intervals you don't want to be tested on, then answer the questions. Once you can answer every question in 1 second or less, regardless of the position, move on to the next part.</p>
+        </div>
+      </div>
+
+      <!-- Bass -->
+      <div id="ch2-bass" class="instrument-content">
+        <div class="step">
+          <h3>Knowing all intervals on the bass neck</h3>
+          <p>In this stage, you'll focus on not just hearing intervals but also locating them. Now that you can identify intervals by ear, the next step is to learn their positions on the bass fretboard. These are shapes used on the fretboard.</p>
+          <div class="img-block">
+            <img src="./media/major_and_perfect_bass.PNG" alt="Bass – major and perfect interval shapes on E & A strings" class="posture-img">
+            <p class="img-caption">Major &amp; perfect interval shapes — E and A strings (Bass)</p>
+          </div>
+          <div class="img-block">
+            <img src="./media/minor_intervals_bass.PNG" alt="Bass – minor interval shapes on E & A strings" class="posture-img">
+            <p class="img-caption">Minor interval shapes — E and A strings (Bass)</p>
+          </div>
+          <p>To practice, you can use this <a href="./terminal_app_one/generate_random_triplets.html"> terminal app</a>. Here's how it works: start with your index finger on any fret, then place another finger in the position indicated by the numbers to form the interval. I made this because it takes me effort to come up with random positions so let the computer do it for me. once you can do this in 1 second or less for any position move to the next part.</p>
+        </div>
+      </div>
+
+    </article>
+
+    <!-- CHAPTER 3 -->
+    <article class="chapter" id="chapter-3">
+      <div class="chapter-header">
+        <span class="chapter-number">Chapter 03</span>
+        <h2>Recognizing Interval Sound and Position (1 year)</h2>
+      </div>
+
+      <!-- No instrument selected -->
+      <div id="ch3-none" class="instrument-content visible">
+        <div class="callout" style="text-align:center;">
+          <p class="callout-label">Select your instrument</p>
+          <p>Choose Guitar, Piano, or Bass at the top of the page to see the instrument-specific content for this chapter.</p>
+        </div>
+      </div>
+
+      <!-- Guitar -->
+      <div id="ch3-guitar" class="instrument-content">
+        <div class="step">
+          <h3>Recalling all intervals everyday</h3>
+          <p>
+            Remember to play all the intervals by ear at least once every day(sing an interval in your head and then play it). For example, play a major second, then a major third, then a perfect fourth, and so on. By the time you finish the major intervals, move on to the minor intervals. This is where music theory comes in handy. You should try to start the minor scale from a convenient position—in this case, two and a half steps below the starting note, or at the sixth interval.
+          </p>
+          <div class="img-block">
+            <img src="./media/convenient_start_guitar.PNG" alt="Guitar – minor interval shapes" class="posture-img">
+            <p class="img-caption">fretboard showing the shapes of the minor and major scale</p>
+          </div>
+	<p>Sing all major and perfect intervals starting from any note. When you finish playing them, go to the sixth degree (the sixth interval) by singing a major sixth above the root note(the first note you played) or by singing a minor third below the root note . Once there, play the minor intervals from the minor third (m3) to the minor seventh (m7). Finally, move up a major second and sing a minor second (m2).</p>
+        </div>
+      </div>
+
+      <!-- Piano -->
+      <div id="ch3-piano" class="instrument-content">
+        <div class="step">
+          <h3>Recalling all intervals everyday</h3>
+          <p>
+            Remember to play all the intervals by ear at least once every day(sing an interval in your head and then play it). For example, play a major second, then a major third, then a perfect fourth, and so on. By the time you finish the major intervals, move on to the minor intervals. This is where music theory comes in handy. You should try to start the minor scale from a convenient position—in this case, two and a half steps below the starting note, or at the sixth interval.
+          </p>
+          <div class="img-block">
+            <img src="./media/convenient_start_piano.PNG" alt="Guitar – minor interval shapes" class="posture-img">
+            <p class="img-caption">caption of the image</p>
+<p>Sing all major and perfect intervals starting from any note. When you finish playing them, go to the sixth degree (the sixth interval) by singing a major sixth above the root note(the first note you played) or by singing a minor third below the root note . Once there, play the minor intervals from the minor third (m3) to the minor seventh (m7). Finally, move up a major second and sing a minor second (m2).</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bass -->
+      <div id="ch3-bass" class="instrument-content">
+        <div class="step">
+          <h3>Recalling all intervals everyday</h3>
+          <p>
+            Remember to play all the intervals by ear at least once every day(sing an interval in your head and then play it). For example, play a major second, then a major third, then a perfect fourth, and so on. By the time you finish the major intervals, move on to the minor intervals. This is where music theory comes in handy. You should try to start the minor scale from a convenient position—in this case, two and a half steps below the starting note, or at the sixth interval.
+          </p>
+          <div class="img-block">
+            <img src="./media/convenient_start_bass.PNG" alt="Guitar – minor interval shapes" class="posture-img">
+            <p class="img-caption">caption of the image</p>
+<p>Sing all major and perfect intervals starting from any note. When you finish playing them, go to the sixth degree (the sixth interval) by singing a major sixth above the root note(the first note you played) or by singing a minor third below the root note . Once there, play the minor intervals from the minor third (m3) to the minor seventh (m7). Finally, move up a major second and sing a minor second (m2).</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <h3>The loop</h3>
+        <p>We need to understand a loop. First you need to recognize the interval by ear, find it in the fretboard and then play the interval. For every loop, you start again where you left off.</p>
+
+        <p>Sing and play , simultaneously:</p>
+        <ul>
+          <li>✅ One interval (2 weeks)</li>
+          <li>✅ Two intervals (2 weeks)</li>
+          <li>✅ Three intervals (2 weeks)</li>
+          <li>✅ More than three intervals (2 weeks)</li>
+        </ul>
+        <p>Can hear and play (<a href="./terminal_app_two/dictation_app.html">use this dictation app</a>):</p>
+        <ul>
+          <li>✅ Two intervals (2 weeks)</li>
+          <li>✅ Three intervals (2 weeks)</li>
+          <li>✅ More than three intervals (2 weeks)</li>
+        </ul>
+        <p>Can sing over chord progressions (<a href="https://chordchord.com" target="_blank">use the app chordchord</a>):</p>
+        <ul>
+          <li>✅ One interval (2 weeks)</li>
+          <li>✅ Two intervals (2 weeks)</li>
+          <li>✅ Three intervals (2 weeks)</li>
+          <li>✅ More than three intervals (2 weeks)</li>
+        </ul>
+        <p><strong>Note:</strong> Practice at 70 BPM. Faster BPM is harder.</p>
+        <p>Here first you sing anything you think sounds cool to you (the complete thing — do not use the loop), after finishing singing all, use the loop to play it.</p>
+        <p>Thinking then playing (gain precision):</p>
+        <ul>
+          <li>✅ Make words (2 weeks)</li>
+          <li>✅ Think at least three notes then play them (2 weeks)</li>
+          <li>✅ Make phrases (2 weeks)</li>
+          <li>✅ Join notes into meaningful phrases (2 weeks)</li>
+        </ul>
+        <p>Thinking and playing immediately (exchange precision for speed):</p>
+        <ul>
+          <li>✅ Play in real time (≤1s per note)</li>
+        </ul>
+
+        <h3>playing using octaves</h3>
+        <p>Practice playing in octaves (disco style) for 1 minute a day using only minor sevenths, major sixths, and major sevenths. This will help you accurately feel intervals that are very far apart.</p>
+      </div>
+
+    </article>
+
+    <!-- CHAPTER 4 — Guitar only -->
+    <article class="chapter" id="chapter-4">
+      <div class="chapter-header">
+        <span class="chapter-number">Chapter 04</span>
+        <h2 id="ch4-title">Learning the First Two Strings of the Guitar (n months)</h2>
+      </div>
+
+      <!-- ── GUITAR ── -->
+      <div id="ch4-guitar" class="instrument-content">
+        <div class="step">
+          <h3>The E and B strings</h3>
+          <p>We now have to learn the E and B strings. The tricky part is that the intervals are shifted by a half step compared to the other strings. You'll see the same interval shapes, but in new positions.</p>
+
+          <div class="img-block">
+            <img src="./media/ltsmajor_and_perfect.PNG" alt="Guitar – major and perfect intervals on E & B strings" class="posture-img">
+            <p class="img-caption">Major &amp; perfect interval shapes — E and B strings (Guitar)</p>
+          </div>
+
+          <div class="img-block">
+            <img src="./media/ltsminor_intervals.PNG" alt="Guitar – minor intervals on E & B strings" class="posture-img">
+            <p class="img-caption">Minor interval shapes — E and B strings (Guitar)</p>
+          </div>
+
+          <p>if you want to practice this new positions and if you get tired of comming up with new random notes you may use this <a href="./terminal_app_three/tell_me_rand_intervals_inside_the_scale.html"> terminal app</a></p>
+        </div>
+      </div>
+
+    </article>
+
+  </div><!-- /content -->
+
+  <!-- ─── FAQ ─── -->
+  <section class="faq-section">
+    <hr class="divider">
+    <p class="section-label">Frequently Asked Questions</p>
+
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          can you play chords?
+          <span class="faq-arrow"></span>
+        </button>
+        <div class="faq-answer">
+          <p>Yes you can play chords. You have to think on the notes as one arpeggio (is way easier than it sounds once you finished the tutorial on this page)</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          can you improvise over chord progressions?
+          <span class="faq-arrow"></span>
+        </button>
+        <div class="faq-answer">
+          <p>Yes, you can improvise over chord progressions</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          where can I leave a comment or get an answer from you?
+          <span class="faq-arrow"></span>
+        </button>
+        <div class="faq-answer">
+          <p>you can leave a comment in this youtube video ... I will answer to any question in the youtube comment section whenever I can</p>
+        </div>
+      </div>
+
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          Do you need perfect pitch?
+          <span class="faq-arrow"></span>
+        </button>
+        <div class="faq-answer">
+          <p>Not really, everyone can play like that.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          How do you know this page works?
+          <span class="faq-arrow"></span>
+        </button>
+        <div class="faq-answer">
+          <p>this is exactly what id did to be able to play like those guys in the video (george benson, oscar peterson, victor wooten).they all
+		do this technique. I recorded everything I did from day 1 thats how I know this webpage works.
+	</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          how long will it take me to play like the guys in the videos
+          <span class="faq-arrow"></span>
+        </button>
+        <div class="faq-answer">
+          <p>Once you reach 1 year, 6 months, and 2 weeks of practice, you will know everything you need to know. From that point on, you should continue practicing for fun at least once a day for 5 minutes—you will not need to practice anything else anymore—for 6 more months to become comfortable playing anything you are able to imagine.</p>
+        </div>
+      </div>
+
+
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          where are all the apps you have made?
+          <span class="faq-arrow"></span>
+        </button>
+<div class="faq-answer">
+  <p>We currently have the following apps:</p>
+
+  <ul>
+    <li>
+      <strong>Bass and Guitar</strong>
+      <ul>
+        <li>
+          <a href="./terminal_app_one/generate_random_triplets.html">
+            Generate Random Triplets
+          </a>
+        </li>
+        <li>
+          <a href="./terminal_app_two/dictation_app.html">
+            Dictation App
+          </a>
+          <p class="app-desc">This app is made to test you on identifying several intervals in a row. You have to choose how many notes you want in a row — for example, if you want to play two notes in a row, you enter 1 inside the terminal and press enter.</p>
+        </li>
+      </ul>
+    </li>
+
+    <li>
+      <strong>Guitar Only</strong>
+      <ul>
+        <li>
+          <a href="./terminal_app_three/tell_me_rand_intervals_inside_the_scale.html">
+            Tell Me Random Intervals Inside the Scale
+          </a>
+          <p class="app-desc">This app tells you what intervals to play without getting out of the scale so that it is easier to sing. You must start playing at the n fret at n string for it to work correctly.</p>
+        </li>
+      </ul>
+    </li>
+
+    <li>
+      <strong>Piano Only</strong>
+      <ul>
+        <li>
+          <a href="./terminal_app_piano/test_intervals/test_piano_intervals_app.html">
+            Test Piano Intervals App
+          </a>
+          <p class="app-desc">This app tests you on intervals on the piano. Remember not to care about the note names — all you need to know is the interval.</p>
+        </li>
+        <li>
+          <a href="./terminal_app_piano/show_intervals_in_piano.html">
+            Show Intervals in Piano
+          </a>
+          <p class="app-desc">You can click any piano key and it will show you which intervals you can play from there.</p>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ─── FOOTER ─── -->
+  <footer>
+    <span>Music Fundamentals Tutorial</span>
+    <span>A complete guide for beginners</span>
+  </footer>
+
+  <script>
+    // ─── INSTRUMENT DATA ───
+    const instrumentData = {
+      guitar: {
+        ch2Title: 'Recognize Interval on Fretboard (2 weeks)',
+        ch4Title: 'Learning the First Two Strings of the Guitar (n months)'
+      },
+      piano: {
+        ch2Title: 'Recognize Interval on the Keyboard (n weeks)'
+      },
+      bass: {
+        ch2Title: 'Recognize Interval on the Bass Neck (2 weeks)'
+      }
+    };
+
+    // ─── INSTRUMENT SELECTION ───
+    let currentInstrument = null;
+
+    function selectInstrument(btn) {
+      const instrument = btn.dataset.instrument;
+
+      // Toggle off if already selected
+      if (currentInstrument === instrument) {
+        btn.classList.remove('active');
+        currentInstrument = null;
+        updateInstrumentContent(null);
+        document.getElementById('instrument-prompt').style.display = 'block';
+        return;
+      }
+
+      document.querySelectorAll('.instrument-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentInstrument = instrument;
+
+      updateInstrumentContent(instrument);
+      document.getElementById('instrument-prompt').style.display = 'none';
+    }
+
+    function updateInstrumentContent(instrument) {
+      const key = instrument || 'none';
+
+      // ── Ch1 inline images (data-instruments attribute) ──
+      document.querySelectorAll('.instrument-img').forEach(el => {
+        const targets = el.dataset.instruments.split(',');
+        el.style.display = targets.includes(key) ? '' : 'none';
+      });
+
+      // ── Ch2 panels ──
+      document.querySelectorAll('#chapter-2 .instrument-content').forEach(el => el.classList.remove('visible'));
+      const ch2Panel = document.getElementById('ch2-' + key);
+      if (ch2Panel) ch2Panel.classList.add('visible');
+      if (instrumentData[instrument]) {
+        document.getElementById('ch2-title').textContent = instrumentData[instrument].ch2Title;
+      } else {
+        document.getElementById('ch2-title').textContent = 'Recognize Interval on Fretboard (2 weeks)';
+      }
+
+      // ── Ch3 panels ──
+      document.querySelectorAll('#chapter-3 .instrument-content').forEach(el => el.classList.remove('visible'));
+      const ch3Panel = document.getElementById('ch3-' + key);
+      if (ch3Panel) ch3Panel.classList.add('visible');
+
+      // ── Ch4 — guitar only. Hidden entirely for piano/bass/no selection. ──
+      const ch4Article = document.getElementById('chapter-4');
+      const ch4Toc = document.getElementById('toc-ch4');
+      if (instrument === 'guitar') {
+        ch4Article.style.display = '';
+        ch4Toc.style.display = '';
+        document.querySelectorAll('#chapter-4 .instrument-content').forEach(el => el.classList.remove('visible'));
+        document.getElementById('ch4-guitar').classList.add('visible');
+        document.getElementById('ch4-title').textContent = instrumentData.guitar.ch4Title;
+      } else {
+        ch4Article.style.display = 'none';
+        ch4Toc.style.display = 'none';
+      }
+    }
+
+    // ─── FAQ TOGGLE ───
+    function closeFaqItem(item) {
+      const answer = item.querySelector('.faq-answer');
+      item.classList.remove('open');
+      if (answer) answer.style.maxHeight = null;
+    }
+
+    function openFaqItem(item) {
+      const answer = item.querySelector('.faq-answer');
+      item.classList.add('open');
+      if (answer) answer.style.maxHeight = answer.scrollHeight + 'px';
+    }
+
+    function toggleFaq(btn) {
+      const item = btn.closest('.faq-item');
+      const isOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item.open').forEach(closeFaqItem);
+      if (!isOpen) openFaqItem(item);
+    }
+
+    // Keep open FAQ height correct if the viewport is resized (text reflows)
+    window.addEventListener('resize', () => {
+      const openItem = document.querySelector('.faq-item.open');
+      if (openItem) {
+        const answer = openItem.querySelector('.faq-answer');
+        if (answer) answer.style.maxHeight = answer.scrollHeight + 'px';
+      }
+    });
+
+    // ─── READING PROGRESS BAR ───
+    const progressBar = document.getElementById('progressBar');
+    window.addEventListener('scroll', () => {
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const scrolled = window.scrollY / docHeight;
+      progressBar.style.width = Math.min(scrolled * 100, 100) + '%';
+    });
+
+    // ─── VIDEO FALLBACK ───
+    const video = document.querySelector('video');
+    if (video) {
+      video.addEventListener('error', () => {
+        const block = video.closest('.video-block');
+        if (block) {
+          block.innerHTML = `
+          <div class="video-placeholder">
+            <div class="play-icon"></div>
+            <span>Video: intro-video.mp4</span>
+            <span style="font-size:11px;color:#888;margin-top:4px;">Place your video file in the same folder as this HTML file</span>
+          </div>`;
+        }
+      });
+    }
+
+    // ─── INTERVAL AUDIO ───
+    let intervalSynth = null;
+
+    function getIntervalSynth() {
+      if (!intervalSynth) {
+        intervalSynth = new Tone.Synth({
+          oscillator: { type: 'triangle' },
+          envelope: { attack: 0.02, decay: 0.1, sustain: 0.6, release: 0.8 }
+        }).toDestination();
+      }
+      return intervalSynth;
+    }
+
+    async function playInterval(note1, note2, name, statusId = 'interval-status') {
+      await Tone.start();
+      const s = getIntervalSynth();
+      document.getElementById(statusId).textContent = 'Playing ' + name + '…';
+      const now = Tone.now();
+      s.triggerAttackRelease(note1, '4n', now);
+      s.triggerAttackRelease(note2, '4n', now + 0.6);
+      setTimeout(() => {
+        document.getElementById(statusId).textContent = name + ' played.';
+      }, 1400);
+    }
+
+    // ─── DEFAULT: Guitar selected on page load ───
+    window.addEventListener('DOMContentLoaded', () => {
+      const guitarBtn = document.querySelector('.instrument-btn[data-instrument="guitar"]');
+      if (guitarBtn) selectInstrument(guitarBtn);
+    });
+  </script>
+</body>
+
+</html>

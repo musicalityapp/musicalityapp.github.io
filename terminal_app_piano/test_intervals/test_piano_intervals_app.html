@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Interval Ear Trainer</title>
+<style>
+  :root {
+    --wood-dark: #2b1d14;
+    --wood-mid: #4a3324;
+    --key-cream: #f6efe2;
+    --key-black: #1a1410;
+    --brass: #c99a4a;
+    --brass-glow: #e9c374;
+    --correct: #4f9c6c;
+    --incorrect: #b3503f;
+    --text-soft: #e8ddc7;
+    --muted: #b7a888;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 50% 0%, #3a2818, #1c130c 75%);
+    font-family: 'Georgia', 'Iowan Old Style', serif;
+    color: var(--text-soft);
+    padding: 32px 16px;
+  }
+
+  #app {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    max-width: 900px;
+    width: 100%;
+  }
+
+  #info {
+    text-align: center;
+    background: linear-gradient(180deg, var(--wood-mid), var(--wood-dark));
+    border: 1px solid #5c4630;
+    border-radius: 10px;
+    padding: 20px 28px;
+    width: 100%;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+
+  #eyebrow {
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-size: 12px;
+    color: var(--brass);
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    margin-bottom: 8px;
+  }
+
+  #instruction {
+    font-size: 22px;
+    line-height: 1.4;
+  }
+
+  #instruction b {
+    color: var(--brass-glow);
+  }
+
+  #feedback {
+    min-height: 28px;
+    margin-top: 10px;
+    font-size: 17px;
+    font-weight: bold;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    transition: opacity 0.2s ease;
+  }
+
+  #feedback.correct { color: var(--correct); }
+  #feedback.incorrect { color: var(--incorrect); }
+  #feedback.warn { color: var(--brass-glow); }
+
+  #score {
+    margin-top: 10px;
+    font-size: 13px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  #filter-panel {
+    width: 100%;
+    background: linear-gradient(180deg, var(--wood-mid), var(--wood-dark));
+    border: 1px solid #5c4630;
+    border-radius: 10px;
+    padding: 16px 22px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04);
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+  }
+
+  #filter-panel label {
+    display: block;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+
+    color: var(--brass);
+    margin-bottom: 8px;
+  }
+
+  #excludeInput {
+    width: 100%;
+    background: #1c130c;
+    border: 1px solid #5c4630;
+    border-radius: 6px;
+    color: var(--text-soft);
+    font-size: 14px;
+    padding: 9px 12px;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    outline: none;
+  }
+
+  #excludeInput:focus {
+    border-color: var(--brass);
+  }
+
+  #excludeMeta {
+    margin-top: 10px;
+    font-size: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .chip {
+    background: rgba(201, 154, 74, 0.16);
+    border: 1px solid var(--brass);
+    color: var(--brass-glow);
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 12px;
+  }
+
+  .chip.unrecognized {
+    border-color: var(--incorrect);
+    color: #e0a99b;
+    background: rgba(179, 80, 63, 0.14);
+  }
+
+  /* #piano-stage just reserves layout space and gives the original
+     absolutely-positioned #piano block a local point of reference, so it
+     centers within this box instead of jumping to the middle of the whole
+     viewport and overlapping the panels above it. */
+  #piano-stage {
+    position: relative;
+    width: 827px;
+    max-width: 100%;
+    height: 500px;
+  }
+
+  /* ===== original piano styling, unchanged ===== */
+  #piano {
+    /*box model*/
+    width: 827px;   /* 14 white keys: 14*60 - 13*1 = 827 */
+    height: 500px;
+    /*color*/
+    
+    /*position in the screen*/
+    position: absolute; /* here positioned relative to #piano-stage */
+    left: 50%; /* left border of your element will be at the center */
+    top: 50%; /* the top border of your elemtn will be at the center */
+    transform: translate(-50%, -50%); /*used to offset the element by -50% of its own width*/
+    /*extra*/
+    display: flex;  /*get rid of gaps in between*/
+  }
+  .white {
+    /*box model*/
+    width: 60px;
+    height: 240px;
+    margin-left: -1px;  /*creates margin space, overlap over border*/
+    /*color*/
+    border: 1px solid black;
+    background-color: white;
+  }
+  .black {
+    /*box model*/
+    width: 40px;
+    height: 160px;
+    margin-left: 38.25px;  /*creates margin space*/
+    /*color*/
+    background-color: black;
+    /*position in the screen*/
+    position: absolute; /* here positioned realitve to div piano  */
+    z-index: 1;  /*stack on top of other elements*/
+    /*top: 0;  make sure the top aligns with div piano */
+  }
+  /*while button is pressed then it will become grey*/
+  .pressed {
+    background-color: grey;
+  }
+  /*makes all buttons span red (the text that appears when pressed)*/
+  button span {
+    color: red;
+    font-weight: bold;
+  }
+  /* ===== Octave 1 black keys (unchanged math from the original) ===== */
+  #C\#1 {
+    left: 0px;
+  }
+  #D\#1 {
+    left: 59.25px;
+  }
+  #F\#1 {
+    left: 177.25px;  /*59px mult by 3 get whole num +0.25*/
+  }
+  #G\#1 {
+    left: 236.25px;  /*59px mult by 4 get whole num +0.25*/
+  }
+  #A\#1 {
+    left: 295.25px;  /*59px mult by 5 get whole num +0.25*/
+  }
+  /* ===== Octave 2 black keys =====
+     One octave = 7 white keys wide.
+     step per white key = 59px (60px width - 1px overlap margin)
+     octave offset = 7 * 59 = 413px, added to every octave-1 value */
+  #C\#2 {
+    left: 413px;        /* 0 + 413 */
+  }
+  #D\#2 {
+    left: 472.25px;     /* 59.25 + 413 */
+  }
+  #F\#2 {
+    left: 590.25px;     /* 177.25 + 413 */
+  }
+  #G\#2 {
+    left: 649.25px;     /* 236.25 + 413 */
+  }
+  #A\#2 {
+    left: 708.25px;     /* 295.25 + 413 */
+  }
+  /*debug alignment, i messed up somewehre . dont fix it*/
+  #line {
+    border-left: 1px solid black;
+    height: 0px; /*300 or any other value */
+    margin-left: -1px;  /*creates margin space*/
+    color: red;
+    z-index: 2;  /*stack on top of other elements*/
+  }
+
+  /* ===== quiz-mode additions on top of the original key styles ===== */
+  .root-highlight {
+    background-color: var(--brass-glow) !important;
+    box-shadow: 0 0 0 3px var(--brass), 0 0 18px 2px rgba(233, 195, 116, 0.7);
+  }
+
+  .flash-correct {
+    background-color: var(--correct) !important;
+    box-shadow: 0 0 16px 3px rgba(79, 156, 108, 0.8) !important;
+  }
+
+  .flash-incorrect {
+    background-color: var(--incorrect) !important;
+    box-shadow: 0 0 16px 3px rgba(179, 80, 63, 0.8) !important;
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div id="info">
+    <div id="eyebrow">Ear Trainer</div>
+    <div id="instruction">Loading first question…</div>
+    <div id="feedback"></div>
+    <div id="score">Score: 0 / 0</div>
+  </div>
+
+  <div id="filter-panel">
+    <label for="excludeInput">Exclude intervals (comma-separated — e.g. "m2,
+m3, maj3, p4, tt, p5, m6, maj6, m7, maj7, p8 ")</label>
+    <input type="text" id="excludeInput" placeholder="e.g. major second, tritone, m6">
+    <div id="excludeMeta"></div>
+  </div>
+
+  <div id="piano-stage">
+    <div id="piano">
+      <!-- Octave 1 -->
+      <button id="C1"  class="key white"></button>
+      <button id="C#1" class="key black"></button>
+      <button id="D1"  class="key white"></button>
+      <button id="D#1" class="key black"></button>
+      <button id="E1"  class="key white"></button>
+      <button id="F1"  class="key white"></button>
+      <button id="F#1" class="key black"></button>
+      <button id="G1"  class="key white"></button>
+      <button id="G#1" class="key black"></button>
+      <button id="A1"  class="key white"></button>
+      <button id="A#1" class="key black"></button>
+      <button id="B1"  class="key white"></button>
+      <!-- Octave 2 -->
+      <button id="C2"  class="key white"></button>
+      <button id="C#2" class="key black"></button>
+      <button id="D2"  class="key white"></button>
+      <button id="D#2" class="key black"></button>
+      <button id="E2"  class="key white"></button>
+      <button id="F2"  class="key white"></button>
+      <button id="F#2" class="key black"></button>
+      <button id="G2"  class="key white"></button>
+      <button id="G#2" class="key black"></button>
+      <button id="A2"  class="key white"></button>
+      <button id="A#2" class="key black"></button>
+      <button id="B2"  class="key white"></button>
+      <div id="line"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const noteOrder = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+
+  function indexToId(idx) {
+    const note = noteOrder[idx % 12];
+    const octave = Math.floor(idx / 12) + 1;
+    return note + octave;
+  }
+
+  function niceName(id) {
+    // "C#1" -> "C#" (octave dropped for a friendlier prompt, since the
+    // highlighted key already shows the player which physical key it is)
+    return id.slice(0, -1);
+  }
+
+  // Each playable interval: its semitone distance key (matches the old
+  // intervalshm scheme), a display label, and every alias a person might
+  // type in the filter box. Aliases are matched after stripping spaces/
+  // punctuation and lowercasing, so "Major 2nd", "major second", and "M2"
+  // all resolve to the same entry.
+  const intervalDefs = [
+    { key: "0",   label: "Unison",     aliases: ["unison", "p1", "perfectunison"] },
+    { key: "0.5", label: "Minor 2nd",  aliases: ["minor2nd", "min2nd", "m2", "minorsecond", "min2"] },
+    { key: "1",   label: "Major 2nd",  aliases: ["major2nd", "maj2nd", "m2maj", "majorsecond", "maj2"] },
+    { key: "1.5", label: "Minor 3rd",  aliases: ["minor3rd", "min3rd", "m3", "minorthird", "min3"] },
+    { key: "2",   label: "Major 3rd",  aliases: ["major3rd", "maj3rd", "majorthird", "maj3"] },
+    { key: "2.5", label: "Perfect 4th",aliases: ["perfect4th", "p4", "fourth", "perfectfourth"] },
+    { key: "3",   label: "Tritone",    aliases: ["tritone", "tt", "augmented4th", "diminished5th", "aug4", "dim5"] },
+    { key: "3.5", label: "Perfect 5th",aliases: ["perfect5th", "p5", "fifth", "perfectfifth"] },
+    { key: "4",   label: "Minor 6th",  aliases: ["minor6th", "min6th", "m6", "minorsixth"] },
+    { key: "4.5", label: "Major 6th",  aliases: ["major6th", "maj6th", "majorsixth", "maj6"] },
+    { key: "5",   label: "Minor 7th",  aliases: ["minor7th", "min7th", "m7", "minorseventh"] },
+    { key: "5.5", label: "Major 7th",  aliases: ["major7th", "maj7th", "majorseventh", "maj7"] },
+    { key: "6",   label: "Octave",     aliases: ["octave", "p8", "perfectoctave"] }
+  ];
+  const intervalByKey = new Map(intervalDefs.map(d => [d.key, d]));
+
+  function normalize(str) {
+    return str.toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+
+  function findIntervalDef(term) {
+    const n = normalize(term);
+    if (!n) return null;
+    return intervalDefs.find(d => d.aliases.includes(n) || normalize(d.label) === n) || null;
+  }
+
+  const buttons = document.querySelectorAll('button.key');
+  const instructionEl = document.getElementById('instruction');
+  const feedbackEl = document.getElementById('feedback');
+  const scoreEl = document.getElementById('score');
+  const excludeInput = document.getElementById('excludeInput');
+  const excludeMeta = document.getElementById('excludeMeta');
+
+  let correctCount = 0;
+  let totalCount = 0;
+  let rootIdx = null;
+  let targetIdx = null;
+  let targetKey = null;
+  let awaitingNext = false; // true while showing correct-answer feedback, briefly ignore clicks
+  let excludedKeys = new Set(); // interval "key" strings the player has filtered out
+  let lastQuestion = null; // { chosenKey, ascending, rootIdx } of the previous question, so we can avoid repeating it
+
+  function clearHighlights() {
+    buttons.forEach(b => {
+      b.classList.remove('root-highlight', 'flash-correct', 'flash-incorrect');
+    });
+  }
+
+  function randInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function availableKeys() {
+    // unison excluded by default too (distance 0 has no interval to hear)
+    return intervalDefs
+      .filter(d => d.key !== "0")
+      .filter(d => !excludedKeys.has(d.key))
+      .map(d => d.key);
+  }
+
+  // Builds one candidate question (interval, direction, root/target keys)
+  // without touching any global state, so newQuestion() can call it
+  // repeatedly to roll a different result if it lands on a repeat.
+  function generateCandidate(pool) {
+    const chosenKey = pool[randInt(0, pool.length - 1)];
+    const distance = parseFloat(chosenKey) * 2; // undo the *0.5 packing used for the key strings
+
+    // Pick ascending or descending, then pick a root that keeps the target
+    // inside the 24-key (0-23) range for whichever direction was chosen.
+    const canAscend = distance <= 23;   // root could be as low as 0
+    const canDescend = distance <= 23;  // root could be as high as 23
+    let ascending;
+    if (canAscend && canDescend) {
+      ascending = Math.random() < 0.5;
+    } else {
+      ascending = canAscend;
+    }
+
+    let rIdx, tIdx;
+    if (ascending) {
+      rIdx = randInt(0, 23 - distance);
+      tIdx = rIdx + distance;
+    } else {
+      rIdx = randInt(distance, 23);
+      tIdx = rIdx - distance;
+    }
+
+    return { chosenKey, ascending, rootIdx: rIdx, targetIdx: tIdx };
+  }
+
+  function isSameAsLast(candidate) {
+    return lastQuestion !== null &&
+      candidate.chosenKey === lastQuestion.chosenKey &&
+      candidate.ascending === lastQuestion.ascending &&
+      candidate.rootIdx === lastQuestion.rootIdx;
+  }
+
+  function newQuestion() {
+    awaitingNext = false;
+    clearHighlights();
+    feedbackEl.textContent = '';
+    feedbackEl.className = '';
+
+    const pool = availableKeys();
+    if (pool.length === 0) {
+      instructionEl.innerHTML = `All intervals are excluded — remove some filters to keep practicing.`;
+      targetIdx = null;
+      targetKey = null;
+      lastQuestion = null;
+      return;
+    }
+
+    // Re-roll until the question differs from the previous one (interval,
+    // direction, and root note). Capped so a very small pool (e.g. only
+    // one interval left, which itself only allows one root) can't loop
+    // forever — in that edge case we just accept the repeat.
+    let candidate = generateCandidate(pool);
+    let attempts = 0;
+    while (isSameAsLast(candidate) && attempts < 50) {
+      candidate = generateCandidate(pool);
+      attempts++;
+    }
+
+    rootIdx = candidate.rootIdx;
+    targetIdx = candidate.targetIdx;
+    targetKey = candidate.chosenKey;
+    lastQuestion = { chosenKey: candidate.chosenKey, ascending: candidate.ascending, rootIdx: candidate.rootIdx };
+
+    const label = intervalByKey.get(targetKey).label;
+    const rootId = indexToId(rootIdx);
+    const direction = candidate.ascending ? 'above' : 'below';
+
+    document.getElementById(rootId).classList.add('root-highlight');
+    instructionEl.innerHTML = `Play a <b>${label}</b> ${direction} <b>${niceName(rootId)}</b>`;
+  }
+
+  function updateScore() {
+    scoreEl.textContent = `Score: ${correctCount} / ${totalCount}`;
+  }
+
+  function renderExcludeMeta(recognized, unrecognized) {
+    excludeMeta.innerHTML = '';
+    recognized.forEach(label => {
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.textContent = `${label} excluded`;
+      excludeMeta.appendChild(chip);
+    });
+    unrecognized.forEach(term => {
+      const chip = document.createElement('span');
+      chip.className = 'chip unrecognized';
+      chip.textContent = `"${term}" not recognized`;
+      excludeMeta.appendChild(chip);
+    });
+  }
+
+  function applyExcludeFilter() {
+    const terms = excludeInput.value.split(',').map(t => t.trim()).filter(Boolean);
+    const newExcluded = new Set();
+    const recognizedLabels = [];
+    const unrecognizedTerms = [];
+
+    terms.forEach(term => {
+      const def = findIntervalDef(term);
+      if (def) {
+        newExcluded.add(def.key);
+        if (!recognizedLabels.includes(def.label)) recognizedLabels.push(def.label);
+      } else {
+        unrecognizedTerms.push(term);
+      }
+    });
+
+    excludedKeys = newExcluded;
+    renderExcludeMeta(recognizedLabels, unrecognizedTerms);
+
+    // if the active question just got filtered out (or the pool emptied /
+    // un-emptied), regenerate immediately
+    if (targetKey === null || excludedKeys.has(targetKey)) {
+      newQuestion();
+    }
+  }
+
+  let debounceTimer = null;
+  excludeInput.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(applyExcludeFilter, 350);
+  });
+
+  buttons.forEach(button => {
+    button.addEventListener('mousedown', function () {
+      this.classList.add('pressed');
+    });
+    button.addEventListener('mouseup', function () {
+      this.classList.remove('pressed');
+    });
+    button.addEventListener('mouseleave', function () {
+      this.classList.remove('pressed');
+    });
+
+    button.addEventListener('click', function () {
+      if (awaitingNext || targetIdx === null) return;
+
+      const clickedIdx = indexOfButtonId(this.id);
+      const isCorrect = clickedIdx === targetIdx;
+      totalCount += 1;
+
+      if (isCorrect) {
+        correctCount += 1;
+        this.classList.add('flash-correct');
+        feedbackEl.textContent = 'Correct!';
+        feedbackEl.className = 'correct';
+        awaitingNext = true;
+        updateScore();
+        setTimeout(newQuestion, 900);
+      } else {
+        this.classList.add('flash-incorrect');
+        feedbackEl.textContent = 'Not quite — try again.';
+        feedbackEl.className = 'incorrect';
+        updateScore();
+        setTimeout(() => this.classList.remove('flash-incorrect'), 400);
+      }
+    });
+  });
+
+  function indexOfButtonId(id) {
+    const octave = parseInt(id.slice(-1), 10);
+    const note = id.slice(0, -1);
+    const pitchClass = noteOrder.indexOf(note);
+    return pitchClass + (octave - 1) * 12;
+  }
+
+  updateScore();
+  newQuestion();
+</script>
+
+</body>
+</html>
